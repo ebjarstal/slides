@@ -61,3 +61,54 @@ func TestCurrentSlideContentCumulative(t *testing.T) {
 		t.Fatalf("expected cumulative content, got %q", content)
 	}
 }
+
+func TestPagingFormats(t *testing.T) {
+	m := Model{
+		Slides: []Slide{
+			{Parts: []string{"a", "b", "c"}},
+			{Parts: []string{"d"}},
+		},
+	}
+	m.SetPageAndPart(0, 1)
+
+	tests := []struct {
+		format   string
+		expected string
+	}{
+		// No placeholder
+		{"Static", "Static"},
+		// 1 placeholder: slide
+		{"Slide %d", "Slide 1"},
+		// 2 placeholders: slide, totalSlides
+		{"Slide %d / %d", "Slide 1 / 2"},
+		// 3 placeholders: slide, totalSlides, part
+		{"Slide %d / %d | Part %d", "Slide 1 / 2 | Part 2"},
+		// 4+ placeholders: slide, totalSlides, part, totalParts
+		{"Slide %d / %d (Part %d / %d)", "Slide 1 / 2 (Part 2 / 3)"},
+	}
+
+	for _, tt := range tests {
+		m.Paging = tt.format
+		result := m.paging()
+		if result != tt.expected {
+			t.Errorf("format %q: expected %q, got %q", tt.format, tt.expected, result)
+		}
+	}
+}
+
+func TestPagingWithLastPart(t *testing.T) {
+	m := Model{
+		Slides: []Slide{
+			{Parts: []string{"a", "b"}},
+			{Parts: []string{"c", "d", "e"}},
+		},
+	}
+	m.SetPageAndPart(1, 2) // Last slide, last part
+	m.Paging = "Slide %d / %d (Part %d / %d)"
+
+	result := m.paging()
+	expected := "Slide 2 / 2 (Part 3 / 3)"
+	if result != expected {
+		t.Errorf("expected %q, got %q", expected, result)
+	}
+}

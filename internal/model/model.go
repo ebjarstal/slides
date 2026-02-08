@@ -268,13 +268,20 @@ func (m Model) View() string {
 }
 
 func (m *Model) paging() string {
-	switch strings.Count(m.Paging, "%d") {
-	case 2:
-		return fmt.Sprintf(m.Paging, m.Page+1, len(m.Slides))
+	count := strings.Count(m.Paging, "%d")
+	switch count {
+	case 0:
+		return m.Paging
 	case 1:
 		return fmt.Sprintf(m.Paging, m.Page+1)
+	case 2:
+		return fmt.Sprintf(m.Paging, m.Page+1, len(m.Slides))
+	case 3:
+		return fmt.Sprintf(m.Paging, m.Page+1, len(m.Slides), m.Part+1)
 	default:
-		return m.Paging
+		// 4 or more: slide, totalSlides, part, totalParts
+		totalParts := m.stepsInSlide(m.Page)
+		return fmt.Sprintf(m.Paging, m.Page+1, len(m.Slides), m.Part+1, totalParts)
 	}
 }
 
