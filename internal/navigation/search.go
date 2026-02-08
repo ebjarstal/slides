@@ -96,12 +96,12 @@ func (s *Search) Execute(m Model) {
 	}
 	// search from first slide to current slide
 	for i := 0; i <= m.CurrentPage(); i++ {
-		endPart := len(m.SlideParts(i))
+		parts := m.SlideParts(i)
+		endPart := len(parts)
 		if i == m.CurrentPage() {
 			endPart = m.CurrentPart() + 1
 		}
 		for idx := 0; idx < endPart; idx++ {
-			parts := m.SlideParts(i)
 			if idx < len(parts) && len(pattern.FindAllStringSubmatch(parts[idx], 1)) != 0 {
 				m.SetPageAndPart(i, idx)
 				return
