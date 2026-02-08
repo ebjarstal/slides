@@ -409,9 +409,7 @@ func splitSlides(slides []string) []Slide {
 	parsed := make([]Slide, 0, len(slides))
 	for _, slide := range slides {
 		parts := strings.Split(slide, pausedDelimiter)
-		if len(parts) == 0 {
-			parts = []string{slide}
-		}
+		// strings.Split always returns at least one element, so len(parts) >= 1
 		parsed = append(parsed, Slide{Parts: parts})
 	}
 	return parsed
