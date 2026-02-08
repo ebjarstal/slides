@@ -74,26 +74,38 @@ func (s *Search) Execute(m Model) {
 	if err != nil {
 		return
 	}
-	check := func(i int) bool {
+	check := func(i int, startPart int) bool {
 		parts := m.SlideParts(i)
-		for idx, part := range parts {
-			if len(pattern.FindAllStringSubmatch(part, 1)) != 0 {
+		for idx := startPart; idx < len(parts); idx++ {
+			if len(pattern.FindAllStringSubmatch(parts[idx], 1)) != 0 {
 				m.SetPageAndPart(i, idx)
 				return true
 			}
 		}
 		return false
 	}
+	// search from next part in current slide to end of current slide
+	if check(m.CurrentPage(), m.CurrentPart()+1) {
+		return
+	}
 	// search from next slide to end
 	for i := m.CurrentPage() + 1; i < len(m.Pages()); i++ {
-		if check(i) {
+		if check(i, 0) {
 			return
 		}
 	}
-	// search from first slide to previous
-	for i := 0; i < m.CurrentPage(); i++ {
-		if check(i) {
-			return
+	// search from first slide to current slide
+	for i := 0; i <= m.CurrentPage(); i++ {
+		endPart := len(m.SlideParts(i))
+		if i == m.CurrentPage() {
+			endPart = m.CurrentPart() + 1
+		}
+		for idx := 0; idx < endPart; idx++ {
+			parts := m.SlideParts(i)
+			if idx < len(parts) && len(pattern.FindAllStringSubmatch(parts[idx], 1)) != 0 {
+				m.SetPageAndPart(i, idx)
+				return
+			}
 		}
 	}
 }
